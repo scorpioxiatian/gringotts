@@ -415,7 +415,6 @@ class BillingProtocol(object):
             elif self.resize_resource_action(request_method, path_info, body):
                 # by-hour resource can be operated directly
                 if not order.get('unit') or order.get('unit') == 'hour':
-                    min_balance = "0"
                     success, result = self.check_if_owed(env, start_response,
                                                          project_id, min_balance)
                     if not success:
@@ -446,6 +445,10 @@ class BillingProtocol(object):
                 return app_result
 
             elif self.start_resource_action(request_method, path_info, body):
+                success, result = self.check_if_owed(env, start_response,
+                                                     project_id, min_balance)
+                if not success:
+                    return result
                 app_result = self.app(env, start_response)
                 if self.check_if_start_action_success(order['type'], app_result):
                     success, result = self.start_resource_order(env, body, start_response,
@@ -469,7 +472,6 @@ class BillingProtocol(object):
                 # by-hour resource only can be operated when the balance is sufficient
                 # check user if owed or not
                 if not order.get('unit') or order.get('unit') == 'hour':
-                    min_balance = "0"
                     success, result = self.check_if_owed(env, start_response,
                                                          project_id, min_balance)
                     if not success:
